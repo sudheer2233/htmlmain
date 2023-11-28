@@ -4,16 +4,26 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+  branches:
+    include:
+      - main  # Update with your branch name
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'windows-latest'  # Use a Windows agent
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: AzurePowerShell@5
+  inputs:
+    azureSubscription: 'YourAzureServiceConnection'  # Azure service connection name
+    ScriptType: 'InlineScript'
+    Inline: |
+      # Your PowerShell script to execute on the Windows VM
+      # Example: Remote PowerShell command to create a folder on the VM
+      $username = 'YourVMUsername'
+      $password = 'YourVMPassword' | ConvertTo-SecureString -AsPlainText -Force
+      $credential = New-Object System.Management.Automation.PSCredential($username, $password)
+      $session = New-PSSession -ComputerName 'YourVMIPAddress' -Credential $credential
+      Invoke-Command -Session $session -ScriptBlock {
+        New-Item -ItemType Directory -Path 'C:\YourFolderPath'
+      }
+    azurePowerShellVersion: 'LatestVersion'
